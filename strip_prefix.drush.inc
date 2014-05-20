@@ -34,16 +34,18 @@ function drush_strip_prefix(string $prefix) {
   $context = drush_get_context(DRUSH_DB_CREDENTIALS);
   $db = $context['name'];
   $msg = 'You are about to strip the prefix ' . '\'' . $prefix . '\'' . ' from all database tables in the database ' . '\'' . $db . '\'' . '; Are you sure you want to continue?(this cannot be undone)';
-  drush_confirm($msg);
-  foreach($old_tables as $key => $old_table) {
-    if (strpos($old_table, $prefix) !== FALSE) {
-      $new_table = str_replace($prefix, '', $old_table);
-      // first drop $new_table incase it already exists
-      $clean_sql = "DROP TABLE IF EXISTS $new_table";
-      db_query($clean_sql);
-      $rename_sql = "RENAME TABLE $old_table TO $new_table";
-      db_query($rename_sql);
-      drush_print('Renaming ' . $old_table . ' to ' . $new_table);
+  if(drush_confirm($msg)) {
+    foreach($old_tables as $key => $old_table) {
+      if (strpos($old_table, $prefix) !== FALSE) {
+        $new_table = str_replace($prefix, '', $old_table);
+        // first drop $new_table incase it already exists
+        $clean_sql = "DROP TABLE IF EXISTS $new_table";
+        db_query($clean_sql);
+        $rename_sql = "RENAME TABLE $old_table TO $new_table";
+        db_query($rename_sql);
+        drush_print('Renaming ' . $old_table . ' to ' . $new_table);
+      }
     }
   }
+  drush_print('Remember to fix the settings file in your drupal installation to point to your new unprefixed database!');
 }
